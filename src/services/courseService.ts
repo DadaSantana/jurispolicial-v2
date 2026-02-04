@@ -69,8 +69,10 @@ export const getAllCourses = async (status?: 'ativo' | 'inativo'): Promise<Cours
     });
 
     return courses.sort((a, b) => {
-      const dateA = a.dataCriacao instanceof Date ? a.dataCriacao : new Date(a.dataCriacao);
-      const dateB = b.dataCriacao instanceof Date ? b.dataCriacao : new Date(b.dataCriacao);
+      const rawA = a.dataCriacao as Date | Timestamp | string | number;
+      const rawB = b.dataCriacao as Date | Timestamp | string | number;
+      const dateA = rawA instanceof Date ? rawA : rawA instanceof Timestamp ? rawA.toDate() : new Date(rawA as string | number);
+      const dateB = rawB instanceof Date ? rawB : rawB instanceof Timestamp ? rawB.toDate() : new Date(rawB as string | number);
       return dateB.getTime() - dateA.getTime();
     });
   } catch (error: any) {

@@ -421,11 +421,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Garantir tipagem após checagem (openaiKey, geminiKey, anthropicKey já validados acima)
+    const openai = openaiKey as string;
+    const gemini = geminiKey as string;
+    const anthropic = anthropicKey as string;
+
     // Primeiro: gerar relatórios
     const [chatgptReportResult, geminiReportResult, claudeReportResult] = await Promise.allSettled([
-      callOpenAI(descricao, openaiKey),
-      callGemini(descricao, geminiKey),
-      callClaude(descricao, anthropicKey),
+      callOpenAI(descricao, openai),
+      callGemini(descricao, gemini),
+      callClaude(descricao, anthropic),
     ]);
 
     const chatgptReport = chatgptReportResult.status === 'fulfilled' ? chatgptReportResult.value : undefined;
@@ -440,7 +445,7 @@ export async function POST(request: Request) {
     
     if (chatgptReport) {
       analysisPromises.push(
-        callOpenAIAnalysis(chatgptReport, openaiKey)
+        callOpenAIAnalysis(chatgptReport, openai)
           .then(value => ({ status: 'fulfilled' as const, value }))
           .catch(reason => ({ status: 'rejected' as const, reason }))
       );
@@ -450,7 +455,7 @@ export async function POST(request: Request) {
     
     if (geminiReport) {
       analysisPromises.push(
-        callGeminiAnalysis(geminiReport, geminiKey)
+        callGeminiAnalysis(geminiReport, gemini)
           .then(value => ({ status: 'fulfilled' as const, value }))
           .catch(reason => ({ status: 'rejected' as const, reason }))
       );
@@ -460,7 +465,7 @@ export async function POST(request: Request) {
     
     if (claudeReport) {
       analysisPromises.push(
-        callClaudeAnalysis(claudeReport, anthropicKey)
+        callClaudeAnalysis(claudeReport, anthropic)
           .then(value => ({ status: 'fulfilled' as const, value }))
           .catch(reason => ({ status: 'rejected' as const, reason }))
       );
@@ -501,13 +506,13 @@ export async function POST(request: Request) {
       return Promise.resolve({ status: 'rejected' as const, reason: new Error(error || 'Relatório não gerado') });
     };
 
-    negativeReportPromises.push(createNegativePromise(chatgptReport, chatgptReportError, callOpenAINegativeReport, openaiKey));
-    negativeReportPromises.push(createNegativePromise(geminiReport, geminiReportError, callGeminiNegativeReport, geminiKey));
-    negativeReportPromises.push(createNegativePromise(claudeReport, claudeReportError, callClaudeNegativeReport, anthropicKey));
+    negativeReportPromises.push(createNegativePromise(chatgptReport, chatgptReportError, callOpenAINegativeReport, openai));
+    negativeReportPromises.push(createNegativePromise(geminiReport, geminiReportError, callGeminiNegativeReport, gemini));
+    negativeReportPromises.push(createNegativePromise(claudeReport, claudeReportError, callClaudeNegativeReport, anthropic));
 
-    positiveReportPromises.push(createPositivePromise(chatgptReport, chatgptReportError, callOpenAIPositiveReport, openaiKey));
-    positiveReportPromises.push(createPositivePromise(geminiReport, geminiReportError, callGeminiPositiveReport, geminiKey));
-    positiveReportPromises.push(createPositivePromise(claudeReport, claudeReportError, callClaudePositiveReport, anthropicKey));
+    positiveReportPromises.push(createPositivePromise(chatgptReport, chatgptReportError, callOpenAIPositiveReport, openai));
+    positiveReportPromises.push(createPositivePromise(geminiReport, geminiReportError, callGeminiPositiveReport, gemini));
+    positiveReportPromises.push(createPositivePromise(claudeReport, claudeReportError, callClaudePositiveReport, anthropic));
 
     const [chatgptNegativeResult, geminiNegativeResult, claudeNegativeResult] = await Promise.all(negativeReportPromises);
     const [chatgptPositiveResult, geminiPositiveResult, claudePositiveResult] = await Promise.all(positiveReportPromises);

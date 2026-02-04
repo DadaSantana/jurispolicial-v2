@@ -3,10 +3,10 @@ import { markLessonComplete, calculateProgress, getUserCourseProgress } from '@/
 
 export async function POST(
   request: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
     const body = await request.json();
     const { userId, lessonId } = body;
 
@@ -43,10 +43,10 @@ export async function POST(
 
 export async function GET(
   request: Request,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 

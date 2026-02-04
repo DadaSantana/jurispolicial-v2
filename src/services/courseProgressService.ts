@@ -242,8 +242,10 @@ export const getCourseEnrollments = async (courseId: string): Promise<{
 
     // Ordenar por data de início (mais recentes primeiro)
     enrollments.sort((a, b) => {
-      const dateA = a.progress.dataInicio instanceof Date ? a.progress.dataInicio : new Date(a.progress.dataInicio);
-      const dateB = b.progress.dataInicio instanceof Date ? b.progress.dataInicio : new Date(b.progress.dataInicio);
+      const rawA = a.progress.dataInicio as Date | Timestamp | string | number;
+      const rawB = b.progress.dataInicio as Date | Timestamp | string | number;
+      const dateA = rawA instanceof Date ? rawA : rawA instanceof Timestamp ? rawA.toDate() : new Date(rawA as string | number);
+      const dateB = rawB instanceof Date ? rawB : rawB instanceof Timestamp ? rawB.toDate() : new Date(rawB as string | number);
       return dateB.getTime() - dateA.getTime();
     });
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { storage } from '@/lib/firebase';
+import { Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getCourse } from '@/services/courseService';
 import { getUserCourseProgress } from '@/services/courseProgressService';
@@ -48,9 +49,12 @@ export async function POST(request: Request) {
     }
 
     // Formatar data de conclusão
-    const dataConclusao = progress.dataConclusao instanceof Date
-      ? progress.dataConclusao
-      : new Date(progress.dataConclusao);
+    const rawData = progress.dataConclusao as Date | Timestamp | string | number;
+    const dataConclusao = rawData instanceof Date
+      ? rawData
+      : rawData instanceof Timestamp
+      ? rawData.toDate()
+      : new Date(rawData as string | number);
     const dataFormatada = dataConclusao.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',
@@ -65,13 +69,14 @@ export async function POST(request: Request) {
       hash: hashValidacao,
     });
 
-    // Converter PDF para Buffer
-    const pdfBuffer = await pdf(certificateDoc).toBuffer();
+    // Converter PDF para Buffer (CertificatePDF já renderiza <Document><Page>...</Page></Document>)
+    const pdfBuffer = await pdf(certificateDoc as Parameters<typeof pdf>[0]).toBuffer();
 
     // Upload do PDF para Firebase Storage
     const fileName = `certificado_${userId}_${courseId}_${Date.now()}.pdf`;
     const storageRef = ref(storage, `certificados/${fileName}`);
-    const snapshot = await uploadBytes(storageRef, pdfBuffer, {
+    // Em Node.js toBuffer() retorna Buffer (compatível com Uint8Array); tipagem do pacote declara ReadableStream
+    const snapshot = await uploadBytes(storageRef, pdfBuffer as unknown as Uint8Array, {
       contentType: 'application/pdf',
     });
 

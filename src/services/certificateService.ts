@@ -90,16 +90,14 @@ export const generateCertificate = async (
 
     const { pdfUrl } = await response.json();
 
-    // Salvar certificado no Firestore
-    const certificateData: Omit<Certificate, 'id'> = {
+    // Salvar certificado no Firestore (serverTimestamp() é FieldValue na escrita)
+    const certificateRef = await addDoc(collection(db, 'certificados'), {
       userId,
       courseId,
       dataEmissao: serverTimestamp(),
       pdfUrl,
       hashValidacao,
-    };
-
-    const certificateRef = await addDoc(collection(db, 'certificados'), certificateData);
+    });
 
     // Atualizar progresso do curso para marcar certificado como gerado
     if (progress.id) {
@@ -194,8 +192,10 @@ export const getUserCertificates = async (userId: string): Promise<Certificate[]
     });
 
     return certificates.sort((a, b) => {
-      const dateA = a.dataEmissao instanceof Date ? a.dataEmissao : new Date(a.dataEmissao);
-      const dateB = b.dataEmissao instanceof Date ? b.dataEmissao : new Date(b.dataEmissao);
+      const rawA = a.dataEmissao as Date | Timestamp | string | number;
+      const rawB = b.dataEmissao as Date | Timestamp | string | number;
+      const dateA = rawA instanceof Date ? rawA : rawA instanceof Timestamp ? rawA.toDate() : new Date(rawA as string | number);
+      const dateB = rawB instanceof Date ? rawB : rawB instanceof Timestamp ? rawB.toDate() : new Date(rawB as string | number);
       return dateB.getTime() - dateA.getTime();
     });
   } catch (error: any) {

@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
+import { Timestamp } from 'firebase/firestore';
 import { getCertificateByHash } from '@/services/certificateService';
 import { getCourse } from '@/services/courseService';
 import { getUserData } from '@/services/authService';
 
 export async function GET(
   request: Request,
-  { params }: { params: { hash: string } }
+  { params }: { params: Promise<{ hash: string }> }
 ) {
   try {
-    const { hash } = params;
+    const { hash } = await params;
 
     if (!hash) {
       return NextResponse.json(
@@ -37,9 +38,12 @@ export async function GET(
     const user = await getUserData(certificate.userId);
 
     // Formatar data de emissão
-    const dataEmissao = certificate.dataEmissao instanceof Date
-      ? certificate.dataEmissao
-      : new Date(certificate.dataEmissao);
+    const rawData = certificate.dataEmissao as Date | Timestamp | string | number;
+    const dataEmissao = rawData instanceof Date
+      ? rawData
+      : rawData instanceof Timestamp
+      ? rawData.toDate()
+      : new Date(rawData as string | number);
     const dataFormatada = dataEmissao.toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'long',

@@ -368,19 +368,22 @@ const Page = () => {
           comparison = a.valor - b.valor;
           break;
         case 'dataCriacao':
-        default:
-          const dateA = a.dataCriacao instanceof Timestamp 
-            ? a.dataCriacao.toDate() 
-            : a.dataCriacao instanceof Date 
-            ? a.dataCriacao 
-            : new Date(a.dataCriacao);
-          const dateB = b.dataCriacao instanceof Timestamp 
-            ? b.dataCriacao.toDate() 
-            : b.dataCriacao instanceof Date 
-            ? b.dataCriacao 
-            : new Date(b.dataCriacao);
+        default: {
+          const rawA = a.dataCriacao as Timestamp | Date | string | number;
+          const rawB = b.dataCriacao as Timestamp | Date | string | number;
+          const dateA = rawA instanceof Timestamp 
+            ? rawA.toDate() 
+            : rawA instanceof Date 
+            ? rawA 
+            : new Date(rawA as string | number);
+          const dateB = rawB instanceof Timestamp 
+            ? rawB.toDate() 
+            : rawB instanceof Date 
+            ? rawB 
+            : new Date(rawB as string | number);
           comparison = dateA.getTime() - dateB.getTime();
           break;
+        }
       }
 
       return sortOrder === 'asc' ? comparison : -comparison;

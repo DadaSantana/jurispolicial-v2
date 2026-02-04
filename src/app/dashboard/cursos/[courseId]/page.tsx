@@ -20,7 +20,8 @@ import {
   ChevronDown,
   X,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
+  Play
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';

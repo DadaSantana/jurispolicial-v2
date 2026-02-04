@@ -72,7 +72,7 @@ const Page = () => {
   const [enrollments, setEnrollments] = useState<{ progress: any; user: any }[]>([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
 
-  const handleImageChange = (e: React.Change<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       setFile(file);
